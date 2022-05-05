@@ -9,7 +9,7 @@ interface SubmitFeedbackUseCaseRequest {
 }
 
 export class SubmitFeedbackUseCase {
-    
+
     constructor(
         // Cette syntaxe nous permet de raccourcir le constructor
         private feedbacksRepository: FeedbacksRepository,
@@ -18,6 +18,21 @@ export class SubmitFeedbackUseCase {
 
     async execute(request: SubmitFeedbackUseCaseRequest) {
         const { type, comment, screenshot } = request;
+
+        // Le type ne peut pas être null
+        if (!type) {
+            throw new Error('Type is required');
+        }
+
+        // Le comment ne peut pas être null
+        if (!comment) {
+            throw new Error('Comment is required');
+        }
+
+        // Format d'image attendu
+        if (screenshot && !screenshot.startsWith('data:image/png;base64')) {
+            throw new Error('Invalid screenshot format.');
+        }
 
          // Envoi des données vers la bdd
         await this.feedbacksRepository.create({
