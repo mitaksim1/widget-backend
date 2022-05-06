@@ -1,24 +1,49 @@
 import { SubmitFeedbackUseCase } from './submit-feedback-use-case';
 
-// describe nous permet de créer une liste de tests
-// on nomme cette liste avec le nom que l'on veut
+// Utilisation d'un spy qui va vérifier si toutes les fonctions ont été appelées
+const createFeedbackSpy = jest.fn();
+const sendMailSpy = jest.fn();
+
+// On peut remplacer les appels aux méthodes de l'interface par les spies
+const submitFeedback = new SubmitFeedbackUseCase(
+    { create: createFeedbackSpy },
+    { sendMail: sendMailSpy }
+)
+
 describe('Submit feedback', () => {
-    // Pour commencer à écrire un test, on peut utiliser le mot test ou it
     it('should be able to submit a feedback', async () => {
-        // On veut juste tester la fonction et son cas d'usage
-        // Alors, on ne va pas passer l'instanciation de Prisma et Nodemailer à cette fonction là ce serait un test d'intégration
-        const submitFeedback = new SubmitFeedbackUseCase(
-            // On dit que les dépendances sont mocking (on crée des objets qui simule le comportement des objets réels)
-            { create: async () => { } },
-            { sendMail: async () => { } }
-        )
-        
-        // Quand on va tester on s'attend à avoir le résultat contenu dans execute
-        // et que le test résout ça et ne lance pas une erreur
         await expect(submitFeedback.execute({
             type: 'BUG',
             comment: 'example comment',
             screenshot: 'data:image/png;base64,8522366552hsys',
         })).resolves.not.toThrow();
+    
+        // On s'attend à ce que ces fonctions aient été appelées
+        expect(createFeedbackSpy).toHaveBeenCalled();
+        expect(sendMailSpy).toHaveBeenCalled();
+    });
+
+    it('should not be able to submit feedback without type', async () => {
+        await expect(submitFeedback.execute({
+            type: '',
+            comment: 'example comment',
+            screenshot: 'data:image/png;base64,8522366552hsys',
+        })).rejects.toThrow();
+    });
+
+    it('should not be able to submit feedback without comment', async () => {
+        await expect(submitFeedback.execute({
+            type: 'BUG',
+            comment: '',
+            screenshot: 'data:image/png;base64,8522366552hsys',
+        })).rejects.toThrow();
+    });
+
+    it('should not be able to submit feedback with invalid screenshot format', async () => {
+        await expect(submitFeedback.execute({
+            type: 'BUG',
+            comment: 'example comment',
+            screenshot: 'test.jpg',
+        })).rejects.toThrow();
     });
 });
