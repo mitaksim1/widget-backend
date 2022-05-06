@@ -6,9 +6,7 @@ import { routes } from './routes';
 const app = express();
 
 // Appel à cors
-app.use(cors({
-    origin: 'http://localhost:3000'
-}));
+app.use(cors());
 
 // Permet la récupération de la requête en format JSON
 // limit: '50mb' : nous permet d'envoyer une image dans le format base64 qui a une string trop large
